@@ -1,5 +1,6 @@
 #include "main.h"
-
+pros::Motor left_mtr(2);
+pros::Motor right_mtr(3);
 /**
  * A callback function for LLEMU's center button.
  *
@@ -16,6 +17,45 @@ void on_center_button() {
 	}
 }
 
+
+void drive_forward(int distance, int speed){
+	left_mtr.move_relative(distance, speed);
+	right_mtr.move_relative(-distance, speed);
+	pros::delay(2000);
+	return;
+}
+
+void drive_reverse(int distance, int speed){
+	left_mtr.move_relative(-distance, speed);
+	right_mtr.move_relative(distance, speed);
+	pros::delay(2000);
+	return;
+}
+
+void turn_right(){
+	left_mtr.move_relative(440, 50);
+	right_mtr.move_relative(440, 50);
+	pros::delay(1000);
+	return;
+}
+
+void turn_left(){
+	left_mtr.move_relative(-440, 50);
+	right_mtr.move_relative(-440, 50);
+	pros::delay(1000);
+	return;
+}
+
+void drive_square(int size, int speed){
+	drive_forward(size,speed);
+	turn_right();
+	drive_forward(size, speed);
+	turn_right();
+	drive_forward(size,speed);
+	turn_right();
+	drive_forward(size, speed);
+	turn_right();
+}
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *
@@ -26,7 +66,13 @@ void initialize() {
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "Hello PROS User!");
 
+	//pros::Motor left_mtr(2);
+	//pros::Motor right_mtr(3);
+
+//pros::Motor drive_left_initializer(2, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
+
 	pros::lcd::register_btn1_cb(on_center_button);
+	autonomous();
 }
 
 /**
@@ -45,7 +91,10 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+pros::lcd::set_text(2, "comp init!");
+
+}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -58,7 +107,21 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+drive_square(2000, 75);
+
+	drive_forward(1000,75);
+	turn_right();
+	drive_reverse(1000, 75);
+	turn_right();
+	drive_forward(1000,75);
+	turn_left();
+	drive_forward(1000, 75);
+	turn_left();
+}
+
+
+
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -75,18 +138,19 @@ void autonomous() {}
  */
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor left_mtr(1);
-	pros::Motor right_mtr(2);
+	pros::Motor left_mtr(2);
+	pros::Motor right_mtr(3);
 
-	while (true) {
+	while (false) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
-		int left = master.get_analog(ANALOG_LEFT_Y);
-		int right = master.get_analog(ANALOG_RIGHT_Y);
+		int power = master.get_analog(ANALOG_LEFT_Y)/2;
+		int turn = master.get_analog(ANALOG_RIGHT_X);
 
-		left_mtr = left;
-		right_mtr = right;
+		left_mtr = power+turn;
+		right_mtr = -power+turn;
 		pros::delay(20);
 	}
+
 }
