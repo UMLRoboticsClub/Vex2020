@@ -1,5 +1,6 @@
 #include "main.h"
-
+pros::Motor left_mtr(2);
+pros::Motor right_mtr(3);
 /**
  * A callback function for LLEMU's center button.
  *
@@ -16,6 +17,45 @@ void on_center_button() {
 	}
 }
 
+
+void drive_forward(int distance, int speed){
+//	left_mtr.move_relative(distance, speed);
+//	right_mtr.move_relative(-distance, speed);
+//	pros::delay(2000);
+	return;
+}
+
+void drive_reverse(int distance, int speed){
+//	left_mtr.move_relative(-distance, speed);
+//	right_mtr.move_relative(distance, speed);
+//	pros::delay(2000);
+	return;
+}
+
+void turn_right(){
+//	left_mtr.move_relative(445, 25);
+//	right_mtr.move_relative(445, 25);
+//	pros::delay(1000);
+	return;
+}
+
+void turn_left(){
+//	left_mtr.move_relative(-445, 25);
+//	right_mtr.move_relative(-445, 25);
+//	pros::delay(1000);
+	return;
+}
+
+void drive_square(int size, int speed){
+/*	drive_forward(size,speed);
+	turn_right();
+	drive_forward(size, speed);
+	turn_right();
+	drive_forward(size,speed);
+	turn_right();
+	drive_forward(size, speed);
+	turn_right();*/
+}
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *
@@ -26,7 +66,13 @@ void initialize() {
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "Hello PROS User!");
 
+	//pros::Motor left_mtr(2);
+	//pros::Motor right_mtr(3);
+
+//pros::Motor drive_left_initializer(2, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
+
 	pros::lcd::register_btn1_cb(on_center_button);
+	autonomous();
 }
 
 /**
@@ -45,7 +91,10 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+pros::lcd::set_text(2, "comp init!");
+
+}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -58,7 +107,40 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+	pros::Motor rightForward_mtrA(2);
+	pros::Motor rightForward_mtrB(3);
+
+	pros::Motor leftForward_mtrA(12);
+	pros::Motor leftForward_mtrB(13);
+
+	pros::Motor leftbackward_mtrA(18);
+	pros::Motor leftbackward_mtrB(19);
+
+	pros::Motor rightbackward_mtrA(8);
+	pros::Motor rightbackward_mtrB(9);
+//drive_square(1000, 75);
+/*
+rightForward_mtrA = 25;
+rightForward_mtrB = 25;
+
+//LF
+leftForward_mtrA = 25;
+leftForward_mtrB = 25;
+
+//LB
+leftbackward_mtrA = 25;
+leftbackward_mtrB = 25;
+
+//RB
+rightbackward_mtrA = 25;
+rightbackward_mtrB = 25;
+pros::delay(2000);
+*/
+}
+
+
+
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -75,18 +157,87 @@ void autonomous() {}
  */
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor left_mtr(1);
-	pros::Motor right_mtr(2);
+	//define all the motor ports
+	pros::Motor rightForward_mtrA(2);
+	pros::Motor rightForward_mtrB(3);
 
+	pros::Motor leftForward_mtrA(12);
+	pros::Motor leftForward_mtrB(13);
+
+	pros::Motor leftbackward_mtrA(18);
+	pros::Motor leftbackward_mtrB(19);
+
+	pros::Motor rightbackward_mtrA(8);
+	pros::Motor rightbackward_mtrB(9);
+	int speed_mod = 2;
+
+	//set all motors to 0 at start
+
+	//RF 'right forward motors'
+	rightForward_mtrA = 0;
+	rightForward_mtrB = 0;
+
+	//LF
+	leftForward_mtrA = 0;
+	leftForward_mtrB = 0;
+
+	//LB
+	leftbackward_mtrA = 0;
+	leftbackward_mtrB = 0;
+
+	//RB
+	rightbackward_mtrA = 0;
+	rightbackward_mtrB = 0;
+	pros::delay(20);
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
-		int left = master.get_analog(ANALOG_LEFT_Y);
-		int right = master.get_analog(ANALOG_RIGHT_Y);
+		int power = master.get_analog(ANALOG_RIGHT_Y)/speed_mod;
+		int strafe = master.get_analog(ANALOG_RIGHT_X)/speed_mod;
+		int turn = master.get_analog(ANALOG_LEFT_X)/speed_mod;
 
-		left_mtr = left;
-		right_mtr = right;
-		pros::delay(20);
+		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_A)) {//nitro button
+				speed_mod = 1;
+		}
+		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {//standard speed
+				speed_mod = 2;
+		}
+		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_X)) {//slow
+				speed_mod = 3;
+		}
+		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {//slow
+				turn_left();
+		}
+		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {//slow
+				turn_right();
+		}
+		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) {//slow
+				turn_right();
+		}
+
+//		left_mtr = power+turn;
+//		right_mtr = -power+turn;
+//		pros::delay(20);
+
+		//RF weel
+		rightForward_mtrA = power -strafe -turn;
+		rightForward_mtrB = power -strafe -turn;
+
+		//LF
+		leftForward_mtrA = -power -strafe -turn;
+		leftForward_mtrB = -power -strafe -turn;
+
+		//LB
+		leftbackward_mtrA = -power +strafe -turn;
+		leftbackward_mtrB = -power +strafe -turn;
+
+		//RB
+		rightbackward_mtrA = power +strafe -turn;
+		rightbackward_mtrB = power +strafe -turn;
+pros::delay(20);
+
+
 	}
+
 }
